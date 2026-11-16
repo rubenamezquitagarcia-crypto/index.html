@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 Organiza tu Mascota</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        h1 {
+            color: #2d7d32;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        /* Mascota */
+        .dog-container {
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .dog {
+            font-size: 90px;
+            transition: all 0.3s ease;
+            filter: grayscale(0%);
+        }
+
+        .dog.happy {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 10px #ffd700);
+        }
+
+        .dog.sad {
+            filter: grayscale(40%);
+            opacity: 0.8;
+        }
+
+        .dog-name {
+            font-size: 1.3rem;
+            color: #444;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        /* Racha */
+        .streak-box {
+            background: linear-gradient(90deg, #ff9500, #ff5e3a);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+
+        .streak-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .streak-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .timer {
+            font-size: 0.9rem;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        /* Tareas */
+        .tasks-title {
+            text-align: left;
+            color: #444;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .task {
+            display: flex;
+            align-items: center;
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .task:hover {
+            background: #e8f5e9;
+            transform: translateX(5px);
+        }
+
+        .task.done {
+            background: #e8f5e9;
+            opacity: 0.85;
+        }
+
+        .task-icon {
+            font-size: 1.8rem;
+            margin-right: 15px;
+        }
+
+        .task-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .task-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .task-desc {
+            font-size: 0.8rem;
+            color: #777;
+        }
+
+        .checkmark {
+            width: 28px;
+            height: 28px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .task.done .checkmark {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: white;
+        }
+
+        /* Botón activar racha */
+        .activate-btn {
+            background: linear-gradient(90deg, #4caf50, #2e7d32);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 25px;
+            width: 100%;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .activate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .activate-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
+        }
+
+        /* Mensaje */
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        .message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        .message.wait {
+            background: #fff3e0;
+            color: #e65100;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 Organiza tu Mascota 🐶</h1>
+        <p class="subtitle">¡Cuida a tu perro y mantén tu racha!</p>
+
+        <!-- Racha -->
+        <div class="streak-box">
+            <div class="streak-number" id="streakCount">0</div>
+            <div class="streak-label">días de racha 🎉</div>
+            <div class="timer" id="timer">⏱️ Siguiente cuidado disponible en 24h</div>
+        </div>
+
+        <!-- Mascota -->
+        <div class="dog-container">
+            <div class="dog" id="dog">🐕</div>
+            <div class="dog-name">Max</div>
+        </div>
+
+        <!-- Tareas -->
+        <p class="tasks-title">📋 Tareas del día:</p>
+
+        <div class="task" id="task1" onclick="completeTask(1)">
+            <span class="task-icon">🍖</span>
+            <div class="task-text">
+                <div class="task-name">Alimentar</div>
+                <div class="task-desc">Dale comida y agua fresca</div>
+            </div>
+            <div class="checkmark" id="check1">✓</div>
+        </div>
+
+        <div class="task" id="task2" onclick="completeTask(2)">
+            <span class="task-icon">🛁</span>
+            <div class="task-text">
+                <div class="task-name">Bañar</div>
+                <div class="task-desc">Límpialo con cariño</div>
+            </div>
+            <div class="checkmark" id="check2">✓</div>
+        </div>
+
+        <div class="task" id="task3" onclick="completeTask(3)">
+            <span class="task-icon">🧹</span>
+            <div class="task-text">
+                <div class="task-name">Limpiar</div>
+                <div class="task-desc">Recoge después de que haga sus necesidades</div>
+            </div>
+            <div class="checkmark" id="check3">✓</div>
+        </div>
+
+        <!-- Botón -->
+        <button class="activate-btn" id="activateBtn" onclick="activateStreak()" disabled>✨ Activar Racha</button>
+
+        <!-- Mensaje -->
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        // Variables
+        let tasksCompleted = [false, false, false];
+        let streak = parseInt(localStorage.getItem('pupStreak')) || 0;
+        let lastActivation = localStorage.getItem('lastActivation') || null;
+        const ONE_DAY = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+
+        // Elementos
+        const streakCount = document.getElementById('streakCount');
+        const dog = document.getElementById('dog');
+        const activateBtn = document.getElementById('activateBtn');
+        const message = document.getElementById('message');
+        const timerDisplay = document.getElementById('timer');
+
+        // Inicializar
+        window.onload = function() {
+            streakCount.textContent = streak;
+            checkTimer();
+            updateDogMood();
+            updateTimerDisplay();
+        };
+
+        // Completar tarea
+        function completeTask(num) {
+            if (canCareToday()) {
+                tasksCompleted[num - 1] = true;
+                document.getElementById(`task${num}`).classList.add('done');
+                checkAllTasks();
+            }
+        }
+
+        // Verificar si todas las tareas están hechas
+        function checkAllTasks() {
+            if (tasksCompleted.every(t => t)) {
+                activateBtn.disabled = false;
+                message.className = 'message success';
+                message.textContent = '¡Todo listo! 🎉 ¡Activa tu racha!';
+            }
+        }
+
+        // ¿Puede cuidar hoy?
+        function canCareToday() {
+            if (!lastActivation) return true;
+            const last = new Date(lastActivation).getTime();
+            const now = new Date().getTime();
+            return (now - last) >= ONE_DAY;
+        }
+
+        // Activar racha
+        function activateStreak() {
+            if (!canCareToday()) {
+                showWaitMessage();
+                return;
+            }
+
+            // Incrementar racha
+            streak++;
+            streakCount.textContent = streak;
+            localStorage.setItem('pupStreak', streak);
+            lastActivation = new Date().toISOString();
+            localStorage.setItem('lastActivation', lastActivation);
+
+            // Animaciones
+            dog.classList.add('happy');
+            message.className = 'message success';
+            message.textContent = `¡Racha activada! 🎉 Día ${streak} — Max está muy feliz 🐶❤️`;
+            
+            // Reiniciar tareas para mañana
+            setTimeout(() => {
+                resetTasks();
+                dog.classList.remove('happy');
+            }, 3000);
+
+            updateTimerDisplay();
+        }
+
+        // Reiniciar tareas
+        function resetTasks() {
+            tasksCompleted = [false, false, false];
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`task${i}`).classList.remove('done');
+            }
+            activateBtn.disabled = true;
+            message.className = 'message';
+            message.textContent = '';
+        }
+
+        // Verificar tiempo y reiniciar si pasó 24h
+        function checkTimer() {
+            if (!lastActivation) return;
+            const last = new Date(lastActivation).getTime();
+            const now = new Date().getTime();
+            
+            // Si pasaron más de 48 horas → perder racha
+            if ((now - last) >= ONE_DAY * 2) {
+                streak = 0;
+                streakCount.textContent = 0;
+                localStorage.setItem('pupStreak', 0);
+                resetTasks();
+                message.className = 'message wait';
+                message.textContent = '¡Oh! Se te pasó un día 😢 La racha se reinició a 0';
+            }
+
+            // Si ya pasaron 24h pero no completó tareas → reiniciar tareas
+            if ((now - last) >= ONE_DAY && tasksCompleted.every(t => !t)) {
+                resetTasks();
+            }
+        }
+
+        // Actualizar cuenta regresiva
+        function updateTimerDisplay() {
+            if (!lastActivation) {
+                timerDisplay.textContent = '⏱️ ¡Disponible ahora! Completa las tareas';
+                return;
+            }
+
+            function update() {
+                const last = new Date(lastActivation).getTime();
+                const now = new Date().getTime();
+                const nextAvailable = last + ONE_DAY;
+                const remaining = nextAvailable - now;
+
+                if (remaining <= 0) {
+                    timerDisplay.textContent = '⏱️ ¡Disponible ahora! Completa las tareas';
+                    return;
+                }
+
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                timerDisplay.textContent = `⏱️ Siguiente en: ${hours}h ${minutes}m`;
+            }
+
+            update();
+            setInterval(update, 60000); // Actualizar cada minuto
+        }
+
+        // Estado de ánimo del perro
+        function updateDogMood() {
+            if (streak >= 7) {
+                dog.textContent = '🐩🎉';
+            } else if (streak >= 3) {
+                dog.textContent = '🐕❤️';
+            } else if (streak === 0 && !tasksCompleted.some(t => t)) {
+                dog.classList.add('sad');
+                setTimeout(() => dog.classList.remove('sad'), 2000);
+            }
+        }
+
+        function showWaitMessage() {
+            message.className = 'message wait';
+            message.textContent = '⏳ ¡Ya cuidaste a Max hoy! Vuelve mañana para seguir tu racha 💪';
+        }
+    </script>
+</body>
+</html>
